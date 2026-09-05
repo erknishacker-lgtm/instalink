@@ -1,140 +1,200 @@
 'use client';
-import React, { useEffect } from 'react';
+
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import toast, { Toaster } from 'react-hot-toast';
 import Header from './components/Header/header';
-import EnhancedButton from './components/Cards/EnhancedButton';
-import IconButtonWithText from './components/Cards/IconButtonWithText';
 import Announcement from './components/Cards/Announcement';
-import { announcementData, headerData, socialMediaData, usefulLinksData } from './data';
-import { icons } from './icons';
-import { fadeIn, rotateScale, welcomeAnimation } from './animations';
+import IconButtonWithText from './components/Cards/IconButtonWithText';
+import EnhancedButton from './components/Cards/EnhancedButton';
+import SchedulingButton from './components/Cards/SchedulingButton';
+import Achadinhos from './components/Sections/Achadinhos';
+import { iconMap } from './icons';
 
-const AboutMe = () => {
-  return (
-    <motion.div className="about-me" initial="hidden" animate="visible">
-      <motion.div
-        className="text-4xl font-bold text-white mt-5 mb-5"
-        variants={fadeIn}
-        transition={{ duration: 0.5 }}
-      >
-        About me
-      </motion.div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-        {socialMediaData.map((social, index) => {
-          const Icon = icons[social.icon];
-          return (
-            <motion.div
-              key={social.title}
-              variants={rotateScale}
-              initial="hidden"
-              animate="visible"
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-            >
-              <IconButtonWithText
-                title={social.title}
-                color={social.color}
-                link={social.link}
-                icon={Icon}
-                username={social.username}
-              />
-            </motion.div>
-          );
-        })}
-      </div>
-    </motion.div>
-  );
-};
+interface SiteData {
+  config: {
+    name: string;
+    username: string;
+    profilePictureUrl: string;
+    announcementBadge: string;
+    announcementText: string;
+    whatsappPhone: string;
+  };
+  socialLinks: Array<{
+    id: string;
+    title: string;
+    link: string;
+    icon: string;
+    username?: string;
+    color: string | { start: string; end: string };
+  }>;
+  usefulLinks: Array<{
+    id: string;
+    title: string;
+    link: string;
+    isNew?: boolean;
+    color: string | { start: string; end: string };
+    icon?: string;
+  }>;
+  services: Array<{
+    id: string;
+    name: string;
+    whatsappMessageTemplate: string;
+  }>;
+  products: Array<{
+    id: string;
+    name: string;
+    imageUrl: string;
+    affiliateLink: string;
+    description?: string;
+  }>;
+}
 
-const UsefulLinks = () => {
-  return (
-    <motion.div className="useful-links" initial="hidden" animate="visible">
-      <motion.div
-        className="text-4xl font-bold text-white mt-5 mb-5"
-        variants={fadeIn}
-        transition={{ duration: 0.5 }}
-      >
-        Useful links
-      </motion.div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {usefulLinksData.map((link, index) => (
-          <motion.div
-            key={link.title}
-            variants={fadeIn}
-            initial="hidden"
-            animate="visible"
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-          >
-            <EnhancedButton
-              title={link.title}
-              color={link.color}
-              link={link.link}
-              isNew={link.isNew}
-            />
-          </motion.div>
-        ))}
-      </div>
-    </motion.div>
-  );
-};
-
-// Main Component
 export default function Home() {
+  const [data, setData] = useState<SiteData | null>(null);
+
   useEffect(() => {
-    toast.custom(
-      (t) => (
-        <div
-          className={`${
-            t.visible ? 'animate-enter' : 'animate-leave'
-          } w-screen bg-gradient-to-r from-purple-600 to-blue-600 p-4 flex justify-center items-center gap-4 fixed bottom-0 left-0 z-50`}
-          style={{ margin: 0 }}
-        >
-          <div className="text-white text-center font-medium">
-            Want a link gallery website like this one? Check out our repository! ✨
-          </div>
-          <button
-            onClick={() => window.open('https://github.com/luizmellodev/instalink', '_blank')}
-            className="px-4 py-2 bg-white text-purple-600 rounded-full font-semibold hover:bg-opacity-90 transition-all"
-          >
-            View Repository
-          </button>
-        </div>
-      ),
-      {
-        duration: Infinity,
-        position: 'bottom-center',
+    async function load() {
+      try {
+        const [config, socialLinks, usefulLinks, services, products] = await Promise.all([
+          fetch('/api/site').then(r => r.json()),
+          fetch('/api/social-links').then(r => r.json()),
+          fetch('/api/useful-links').then(r => r.json()),
+          fetch('/api/services').then(r => r.json()).catch(() => []),
+          fetch('/api/products').then(r => r.json()).catch(() => []),
+        ]);
+        setData({ config, socialLinks, usefulLinks, services, products });
+      } catch (err) {
+        console.error('Failed to load data:', err);
       }
-    );
+    }
+    load();
   }, []);
 
+  if (!data) {
+    return (
+      <div className="min-h-screen bg-bg-primary flex items-center justify-center grain-overlay relative">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 rounded-full border-2 border-accent-rose/30 border-t-accent-rose animate-spin" />
+          <span className="text-sm font-medium text-text-secondary tracking-wide">Carregando...</span>
+        </div>
+      </div>
+    );
+  }
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.08, delayChildren: 0.15 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: [0.23, 0.48, 0.38, 0.96] },
+    },
+  };
+
   return (
-    <div className={`flex flex-col items-center min-h-screen mb-28`}>
-      <Toaster position="bottom-center" toastOptions={{ duration: Infinity }} />
+    <main className="min-h-screen bg-bg-primary py-12 px-4 grain-overlay relative" style={{ WebkitTapHighlightColor: 'transparent' }}>
+      {/* Background Image */}
+      <div 
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat z-0 opacity-70"
+        style={{
+          backgroundImage: "url('/screenmobile.png')"
+        }}
+      />
+
+      {/* Decorative background blobs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
+        <div className="absolute -top-[10%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-accent-rose/[0.04] blur-[100px]" />
+        <div className="absolute top-[20%] -right-[15%] w-[40vw] h-[40vw] rounded-full bg-accent-warm/[0.03] blur-[80px]" />
+        <div className="absolute bottom-[5%] left-[10%] w-[35vw] h-[35vw] rounded-full bg-accent-rose/[0.03] blur-[70px]" />
+      </div>
+
       <motion.div
-        initial={{ opacity: 0, y: -20, scale: 0.8 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5 }}
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="relative max-w-md mx-auto flex flex-col items-center gap-5 z-10"
       >
-        <Header
-          picture={headerData.picture}
-          name={headerData.name}
-          username={headerData.username}
-        />
-        <motion.div
-          className="announcement"
-          variants={welcomeAnimation}
-          initial="hidden"
-          animate="visible"
-        >
-        <Announcement
-            badgeName={announcementData.badgeName}
-            text={announcementData.text}
-            />
+        {/* Header */}
+        <motion.div variants={itemVariants} className="w-full">
+          <Header
+            picture={data.config.profilePictureUrl}
+            name={data.config.name}
+            username={data.config.username}
+          />
         </motion.div>
+
+        {/* Announcement */}
+        {(data.config.announcementBadge || data.config.announcementText) && (
+          <motion.div variants={itemVariants} className="w-full">
+            <Announcement
+              badgeName={data.config.announcementBadge}
+              text={data.config.announcementText}
+            />
+          </motion.div>
+        )}
+
+        {/* Social Links */}
+        <div className="flex flex-col items-center gap-3 w-full">
+          {data.socialLinks.map((link) => (
+            <motion.div key={link.id} variants={itemVariants} className="w-full">
+              <IconButtonWithText
+                title={link.title}
+                color={link.color}
+                link={link.link}
+                icon={iconMap[link.icon]}
+                username={link.username}
+              />
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Divider */}
+        {data.usefulLinks.length > 0 && data.socialLinks.length > 0 && (
+          <motion.div variants={itemVariants} className="w-full px-8">
+            <div className="h-px bg-gradient-to-r from-transparent via-border-subtle to-transparent" />
+          </motion.div>
+        )}
+
+        {/* Useful Links */}
+        <div className="flex flex-col items-center gap-3 w-full">
+          {data.usefulLinks.map((link) => (
+            <motion.div key={link.id} variants={itemVariants} className="w-full">
+              <EnhancedButton
+                title={link.title}
+                color={link.color}
+                link={link.link}
+                isNew={link.isNew}
+                icon={link.icon ? iconMap[link.icon] : undefined}
+              />
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Scheduling Button */}
+        {data.services.length > 0 && (
+          <motion.div variants={itemVariants} className="w-full">
+            <SchedulingButton
+              services={data.services}
+              whatsappPhone={data.config.whatsappPhone}
+            />
+          </motion.div>
+        )}
+
+        {/* Achadinhos */}
+        <motion.div variants={itemVariants} className="w-full">
+          <Achadinhos products={data.products} />
+        </motion.div>
+
+        {/* Footer spacer */}
+        <div className="h-8" />
       </motion.div>
-      <div className="border-b border-gray-800 w-96 mb-5 mt-10" />
-      <AboutMe />
-      <UsefulLinks />
-    </div>
+    </main>
   );
-};
+}

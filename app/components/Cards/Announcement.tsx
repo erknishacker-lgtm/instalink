@@ -1,34 +1,46 @@
-'use client'
-import React, { useState } from 'react';
-import { IoMdCloseCircle } from "react-icons/io";
+'use client';
+
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X } from 'lucide-react';
 
 interface AnnouncementProps {
-    badgeName: string;
-    text: string;
+  badgeName: string;
+  text: string;
 }
 
 export default function Announcement({ badgeName, text }: AnnouncementProps) {
-    const [isOpen, setIsOpen] = useState(true);
-    const [isFadingOut, setIsFadingOut] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
-    const handleClose = () => {
-        setIsFadingOut(true);
-        setTimeout(() => {
-            setIsOpen(false);
-        }, 500);
-    };
-
-    return (
-        isOpen && (
-            <div className={`text-center py-4 lg:px-4 transition-opacity duration-300 ${isFadingOut ? 'opacity-0' : 'opacity-100'}`}>
-                <div className={`p-2 bg-indigo-800 items-center text-indigo-100 leading-none rounded-full flex inline-flex}`} role="alert">
-                    <span className="flex rounded-full bg-indigo-500 uppercase px-2 py-1 text-xs font-bold mr-3">{badgeName}</span>
-                    <span className="font-semibold mr-2 text-left flex-auto">{text}</span>
-                    <button onClick={handleClose} className="ml-2 focus:outline-none">
-                        <IoMdCloseCircle className="text-white size-5 mr-2"/>
-                    </button>
-                </div>
-            </div>
-        )
-    );
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95, height: 0, marginBottom: 0 }}
+          transition={{ duration: 0.3 }}
+          className="w-full max-w-md mx-auto mb-2"
+        >
+          <div className="glass-card rounded-3xl px-6 py-4 flex items-start gap-4 shadow-soft">
+            {badgeName && (
+              <span className="shrink-0 bg-gradient-to-br from-accent-rose to-accent-warm text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-2xl shadow-inner">
+                {badgeName}
+              </span>
+            )}
+            <p className="text-sm font-medium text-text-primary flex-1 leading-snug tracking-tight">
+              {text}
+            </p>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="shrink-0 p-1 rounded-full hover:bg-accent-rose/10 text-text-secondary transition-colors"
+              aria-label="Fechar anúncio"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }

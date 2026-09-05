@@ -1,0 +1,215 @@
+import fs from 'fs';
+import path from 'path';
+import { Redis } from '@upstash/redis';
+import { initialData } from './seed';
+import { SiteData, SiteConfig, SocialLink, UsefulLink, Service, AffiliateProduct } from './types';
+
+const KEY = 'site:data';
+
+// A integração Upstash da Vercel expõe as chaves como KV_REST_API_*;
+// o painel do próprio Upstash usa UPSTASH_REDIS_REST_*. Aceitamos as duas.
+const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+const redis = url && token ? new Redis({ url, token }) : null;
+
+// Sem credenciais (dev local), cai para o arquivo JSON de antes. Em produção isso
+// não serve: o filesystem da Vercel é efêmero e as edições se perderiam em silêncio.
+function requireRedisInProduction() {
+  if (!redis && process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'Redis não configurado. Defina KV_REST_API_URL e KV_REST_API_TOKEN nas variáveis de ambiente.'
+    );
+  }
+}
+
+const DATA_DIR = path.join(process.cwd(), 'data');
+const DATA_FILE = path.join(DATA_DIR, 'site.json');
+
+async function readData(): Promise<SiteData> {
+  requireRedisInProduction();
+  if (redis) {
+    const data = await redis.get<SiteData>(KEY);
+    if (data) return data;
+    const seeded = initialData();
+    await redis.set(KEY, seeded);
+    return seeded;
+  }
+
+  if (!fs.existsSync(DATA_FILE)) {
+    const seeded = initialData();
+    await writeData(seeded);
+    return seeded;
+  }
+  return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8')) as SiteData;
+}
+
+async function writeData(data: SiteData): Promise<void> {
+  requireRedisInProduction();
+  if (redis) {
+    await redis.set(KEY, data);
+    return;
+  }
+
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+  const tmp = DATA_FILE + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf-8');
+  fs.renameSync(tmp, DATA_FILE);
+}
+
+// Site Config
+export async function getSiteConfig(): Promise<SiteConfig> {
+  return (await readData()).config;
+}
+
+export async function updateSiteConfig(config: Partial<SiteConfig>): Promise<SiteConfig> {
+  const data = await readData();
+  data.config = { ...data.config, ...config };
+  await writeData(data);
+  return data.config;
+}
+
+// Social Links
+export async function getSocialLinks(): Promise<SocialLink[]> {
+  return (await readData()).socialLinks.sort((a, b) => a.order - b.order);
+}
+
+export async function addSocialLink(link: Omit<SocialLink, 'id'>): Promise<SocialLink> {
+  const data = await readData();
+  const newLink: SocialLink = { ...link, id: crypto.randomUUID() };
+  data.socialLinks.push(newLink);
+  await writeData(data);
+  return newLink;
+}
+
+export async function updateSocialLink(id: string, updates: Partial<SocialLink>): Promise<SocialLink | null> {
+  const data = await readData();
+  const idx = data.socialLinks.findIndex(l => l.id === id);
+  if (idx === -1) return null;
+  data.socialLinks[idx] = { ...data.socialLinks[idx], ...updates, id };
+  await writeData(data);
+  return data.socialLinks[idx];
+}
+
+export async function deleteSocialLink(id: string): Promise<boolean> {
+  const data = await readData();
+  const before = data.socialLinks.length;
+  data.socialLinks = data.socialLinks.filter(l => l.id !== id);
+  if (data.socialLinks.length === before) return false;
+  await writeData(data);
+  return true;
+}
+
+// Useful Links
+export async function getUsefulLinks(): Promise<UsefulLink[]> {
+  return (await readData()).usefulLinks.sort((a, b) => a.order - b.order);
+}
+
+export async function addUsefulLink(link: Omit<UsefulLink, 'id'>): Promise<UsefulLink> {
+  const data = await readData();
+  const newLink: UsefulLink = { ...link, id: crypto.randomUUID() };
+  data.usefulLinks.push(newLink);
+  await writeData(data);
+  return newLink;
+}
+
+export async function updateUsefulLink(id: string, updates: Partial<UsefulLink>): Promise<UsefulLink | null> {
+  const data = await readData();
+  const idx = data.usefulLinks.findIndex(l => l.id === id);
+  if (idx === -1) return null;
+  data.usefulLinks[idx] = { ...data.usefulLinks[idx], ...updates, id };
+  await writeData(data);
+  return data.usefulLinks[idx];
+}
+
+export async function deleteUsefulLink(id: string): Promise<boolean> {
+  const data = await readData();
+  const before = data.usefulLinks.length;
+  data.usefulLinks = data.usefulLinks.filter(l => l.id !== id);
+  if (data.usefulLinks.length === before) return false;
+  await writeData(data);
+  return true;
+}
+
+// Services
+export async function getServices(): Promise<Service[]> {
+  return (await readData()).services.filter(s => s.isActive).sort((a, b) => a.order - b.order);
+}
+
+export async function getAllServices(): Promise<Service[]> {
+  return (await readData()).services.sort((a, b) => a.order - b.order);
+}
+
+export async function addService(service: Omit<Service, 'id'>): Promise<Service> {
+  const data = await readData();
+  const newService: Service = { ...service, id: crypto.randomUUID() };
+  data.services.push(newService);
+  await writeData(data);
+  return newService;
+}
+
+export async function updateService(id: string, updates: Partial<Service>): Promise<Service | null> {
+  const data = await readData();
+  const idx = data.services.findIndex(s => s.id === id);
+  if (idx === -1) return null;
+  data.services[idx] = { ...data.services[idx], ...updates, id };
+  await writeData(data);
+  return data.services[idx];
+}
+
+export async function deleteService(id: string): Promise<boolean> {
+  const data = await readData();
+  const before = data.services.length;
+  data.services = data.services.filter(s => s.id !== id);
+  if (data.services.length === before) return false;
+  await writeData(data);
+  return true;
+}
+
+// Products
+export async function getProducts(): Promise<AffiliateProduct[]> {
+  return (await readData()).products.filter(p => p.isActive).sort((a, b) => a.order - b.order);
+}
+
+export async function getAllProducts(): Promise<AffiliateProduct[]> {
+  return (await readData()).products.sort((a, b) => a.order - b.order);
+}
+
+export async function addProduct(product: Omit<AffiliateProduct, 'id'>): Promise<AffiliateProduct> {
+  const data = await readData();
+  const newProduct: AffiliateProduct = { ...product, id: crypto.randomUUID() };
+  data.products.push(newProduct);
+  await writeData(data);
+  return newProduct;
+}
+
+export async function updateProduct(id: string, updates: Partial<AffiliateProduct>): Promise<AffiliateProduct | null> {
+  const data = await readData();
+  const idx = data.products.findIndex(p => p.id === id);
+  if (idx === -1) return null;
+  data.products[idx] = { ...data.products[idx], ...updates, id };
+  await writeData(data);
+  return data.products[idx];
+}
+
+export async function deleteProduct(id: string): Promise<boolean> {
+  const data = await readData();
+  const before = data.products.length;
+  data.products = data.products.filter(p => p.id !== id);
+  if (data.products.length === before) return false;
+  await writeData(data);
+  return true;
+}
+
+// Full data (for public page)
+export async function getPublicData() {
+  const data = await readData();
+  return {
+    config: data.config,
+    socialLinks: data.socialLinks.sort((a, b) => a.order - b.order),
+    usefulLinks: data.usefulLinks.sort((a, b) => a.order - b.order),
+    services: data.services.filter(s => s.isActive).sort((a, b) => a.order - b.order),
+    products: data.products.filter(p => p.isActive).sort((a, b) => a.order - b.order),
+  };
+}

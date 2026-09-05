@@ -1,65 +1,57 @@
-import type { Config } from 'tailwindcss';
+import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-      },
-      backgroundColor: {
-        'default': '#17171C',
-      },
       colors: {
-        primary: {
-          100: '#D2EEE9',
-          200: '#A5DED3',
-          300: '#77CDBE',
-          400: '#4ABDA8',
-          DEFAULT: '#1DAC92',
+        bg: {
+          primary: "#FFFAF8",
+          card: "rgba(255, 255, 255, 0.85)",
         },
-        secondary: {
-          100: '#C5CCE0',
-          200: '#B1BBD6',
-          300: '#6378AE',
-          400: '#4A5A82',
-          DEFAULT: '#252D41',
+        text: {
+          primary: "#1A1A2E",
+          secondary: "#6B7280",
         },
-        grayscale: {
-          50: '#F8FAFC',
-          100: '#F1F5F9',
-          200: '#E2E8F0',
-          300: '#CBD5E1',
-          400: '#94A3B8',
-          500: '#64748B',
-          600: '#475569',
-          700: '#334155',
-          800: '#1E293B',
-          900: '#121826',
+        accent: {
+          rose: "#E8457A",
+          warm: "#D4634B",
+          soft: "#FFF0F3",
         },
-        gradienteGreen: {
-          left: '#1DAC92',
-          right: '#228E8E',
+        border: {
+          subtle: "rgba(0, 0, 0, 0.06)",
         },
       },
-      keyframes: {
-        enter: {
-          '0%': { transform: 'translateY(100%)' },
-          '100%': { transform: 'translateY(0)' },
-        },
-        leave: {
-          '0%': { transform: 'translateY(0)' },
-          '100%': { transform: 'translateY(100%)' },
-        },
+      fontFamily: {
+        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        serif: ['"Playfair Display"', 'Georgia', 'serif'],
+      },
+      boxShadow: {
+        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+        'glow': '0 0 20px rgba(232, 69, 122, 0.15)',
+        'card': '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)',
+      },
+      borderRadius: {
+        '2xl': '1rem',
+        '3xl': '1.5rem',
       },
       animation: {
-        enter: 'enter 0.3s ease-out',
-        leave: 'leave 0.3s ease-in forwards',
+        'fade-in': 'fadeIn 0.5s ease-out forwards',
+        'slide-up': 'slideUp 0.5s ease-out forwards',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
       },
     },
   },
