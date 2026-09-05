@@ -6,9 +6,9 @@ export const announcementData = {
     };
 // Header data for the "Header" section
 export const headerData = {
-    picture: "https://avatars.githubusercontent.com/u/49352785?v=4",
-    name: "Luiz Mello",
-    username: "@luizmello.dev",
+    picture: "https://placehold.co/200x200/171515/ffffff?text=You",
+    name: "Your Name",
+    username: "@yourhandle",
   };
 
 // Social media data for the "About me" section
@@ -19,44 +19,44 @@ export const socialMediaData = [
     {
         title: 'GitHub',
         color: { start: '#171515', end: '#2b2b2b' },
-        link: 'https://github.com/luizmellodev',
+        link: 'https://github.com/yourhandle',
         icon: 'FaGithub',
-        username: '@luizmellodev',
+        username: '@yourhandle',
     },
     {
         title: 'Instagram',
         color: { start: '#F58529', end: '#DD2A7B' },
-        link: 'https://www.instagram.com/luizmello.dev',
+        link: 'https://www.instagram.com/yourhandle',
         icon: 'FaInstagram',
-        username: '@luizmello.dev',
+        username: '@yourhandle',
     },
     {
         title: 'Facebook',
         color: { start: '#3b5998', end: '#8b9dc3' },
-        link: '/sadasdasd',
+        link: 'https://www.facebook.com/yourhandle',
         icon: 'FaFacebook',
-        username: 'Luiz Mello',
+        username: 'Your Name',
     },
     {
         title: 'LinkedIn',
         color: { start: '#0072b1', end: '#00a0dc' },
-        link: 'https://www.linkedin.com/in/luizmellodev/',
+        link: 'https://www.linkedin.com/in/yourhandle',
         icon: 'FaLinkedin',
-        username: 'Luiz Mello',
+        username: 'Your Name',
     },
     {
         title: 'X',
         color: { start: '#1DA1F2', end: '#AAB8C2' },
-        link: '/sadsadasdv',
+        link: 'https://x.com/yourhandle',
         icon: 'FaTwitter',
-        username: '@luizmello',
+        username: '@yourhandle',
     },
     {
         title: 'TikTok',
         color: { start: '#69C9D0', end: '#AA0A3A' },
-        link: 'https://www.tiktok.com/@luizmellodev',
+        link: 'https://www.tiktok.com/@yourhandle',
         icon: 'FaTiktok',
-        username: '@luizmellodev',
+        username: '@yourhandle',
     },
 ];
 

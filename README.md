@@ -1,28 +1,51 @@
-# InstaLink 👨‍💻
+# InstaLink
 
-A project for an Instagram link management site (like Linktree). 
-Click on the image to see the website! =)
+A self-hosted link-in-bio page. One place to point your Instagram, TikTok or X
+bio at, with your social profiles and whatever links you want to highlight.
 
-<h1 align="center">
-    <a href="https://instalinkexample.vercel.app/" target="_blank">
-        <img alt="Website screenshot" title="#instalink" src="github_assets/screenmobile2.png" />
-    </a>
-</h1>
+Built with Next.js, Tailwind CSS and TypeScript. Ships with an admin panel
+backed by Redis and image uploads through Vercel Blob.
 
-## Usage
+## Getting started
 
-Clone this repository and update the information in the `data.js` file to customize your links and personal information.
+```bash
+npm install
+npm run dev
+```
 
-You can also change the style of your site! All styles are maintained using Tailwind CSS classes within your components.
+Open http://localhost:3000.
 
-## Contributing
+## Configuration
 
-I am still in the basic development phase. If you would like to contribute, please send me a message on Discord or Instagram Direct (at @luizmello.dev).
+Edit `app/data.js` to set your name, avatar, social profiles and links. Three
+exports drive the page:
 
-## Thanks to
+- `announcementData` — the banner at the top
+- `headerData` — avatar, display name, handle
+- `socialMediaData` — social profile cards
+- `usefulLinksData` — the list of highlighted links
 
-[**giovannamoeller**](https://github.com/giovannamoeller) for the idea and codebase!! (=
+Styling is plain Tailwind utility classes inside the components, so you can
+restyle anything without touching a config file.
+
+### Environment
+
+The admin panel and image uploads need:
+
+```
+KV_REST_API_URL=
+KV_REST_API_TOKEN=
+BLOB_READ_WRITE_TOKEN=
+```
+
+## Deploy
+
+Works as-is on Vercel. Push the repo, set the environment variables above, done.
 
 ## License
 
-With the open-source code and MIT license, I only ask that you give credits to this repository at the end of your README.md (just like I did in the "Thanks to" section).
+MIT. See [LICENSE](LICENSE).
+
+Based on the original [InstaLink](https://github.com/luizmellodev/instalink) by
+Luiz Eduardo, which in turn was built on an idea and codebase by
+[giovannamoeller](https://github.com/giovannamoeller).
