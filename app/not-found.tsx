@@ -1,24 +1,16 @@
+import Link from 'next/link';
 
-export default function Closed() {
-    return (
-      <>
-        <div className="bg-black relative overflow-hidden h-screen">
-            <img src="https://external-preview.redd.it/4MddL-315mp40uH18BgGL2-5b6NIPHcDMBSWuN11ynM.jpg?width=960&crop=smart&auto=webp&s=b98d54a43b3dac555df398588a2c791e0f3076d9" className="absolute h-full w-full object-cover"/>
-            <div className="inset-0 bg-black opacity-25 absolute">
-            </div>
-            <div className="container mx-auto px-6 md:px-12 relative z-10 flex items-center py-32 xl:py-40">
-                <div className="w-full font-mono flex flex-col items-center relative z-10">
-                    <h1 className="font-extrabold text-5xl text-center text-white leading-tight mt-4">
-          You are all alone here
-                  </h1>
-                    <p className="font-extrabold text-8xl my-44 text-white animate-bounce">
-                        404
-                    </p>
-                </div>
-            </div>
-        </div>
-
-      </>
-    );
-  }
-  
+export default function NotFound() {
+  return (
+    <main className="paper-grain relative flex min-h-screen items-center justify-center px-4">
+      <div aria-hidden className="paper-default-bg fixed inset-0 z-0" />
+      <div className="relative z-10 text-center">
+        <h1 className="font-script text-[4rem] leading-none text-ink">Ops</h1>
+        <p className="mt-3 text-[15px] text-ink-soft">Esse endereço não existe por aqui.</p>
+        <Link href="/" className="mt-6 inline-flex h-12 items-center rounded-full bg-hot-deep px-6 text-[15px] font-semibold text-white shadow-hot">
+          Voltar pra página
+        </Link>
+      </div>
+    </main>
+  );
+}

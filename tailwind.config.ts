@@ -1,57 +1,45 @@
-import type { Config } from "tailwindcss";
+import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+  content: ['./app/**/*.{js,ts,jsx,tsx,mdx}', './lib/**/*.{js,ts}'],
   theme: {
     extend: {
       colors: {
-        bg: {
-          primary: "#FFFAF8",
-          card: "rgba(255, 255, 255, 0.85)",
-        },
-        text: {
-          primary: "#1A1A2E",
-          secondary: "#6B7280",
-        },
-        accent: {
-          rose: "#E8457A",
-          warm: "#D4634B",
-          soft: "#FFF0F3",
-        },
-        border: {
-          subtle: "rgba(0, 0, 0, 0.06)",
-        },
+        // O cartão: papel blush, tinta ameixa, rosa para nomes, um rosa quente só para a ação.
+        paper: { DEFAULT: '#FBEFF2', deep: '#F5E4EC', lift: '#FFF7F9' },
+        ink: { DEFAULT: '#3A1F2E', soft: '#6E4A5C', mute: '#7E5468' },
+        rose: { DEFAULT: '#B3446C', soft: '#D98BA6', pale: '#F0CBD8' },
+        // superfície cheia que carrega texto ou ícone branco (5.18:1).
+        hot: { DEFAULT: '#E8457A', deep: '#C92E62', press: '#B02754' },
+        champagne: { DEFAULT: '#EAD9C8', deep: '#D9BFA6' },
+        wa: '#25D366',
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
-        serif: ['"Playfair Display"', 'Georgia', 'serif'],
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        script: ['var(--font-script)', 'cursive'],
+      },
+      fontSize: {
+        '2xs': ['0.6875rem', { lineHeight: '1rem', letterSpacing: '0.14em' }],
       },
       boxShadow: {
-        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-        'glow': '0 0 20px rgba(232, 69, 122, 0.15)',
-        'card': '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)',
+        card: '0 1px 2px rgba(58,31,46,0.06), 0 12px 32px -12px rgba(179,68,108,0.22)',
+        lift: '0 2px 4px rgba(58,31,46,0.06), 0 20px 48px -16px rgba(179,68,108,0.32)',
+        hot: '0 8px 24px -8px rgba(232,69,122,0.55)',
+        inset: 'inset 0 1px 0 rgba(255,255,255,0.7)',
       },
-      borderRadius: {
-        '2xl': '1rem',
-        '3xl': '1.5rem',
+      borderRadius: { card: '1.75rem' },
+      keyframes: {
+        spinSlow: { to: { transform: 'rotate(360deg)' } },
+        shimmer: { '0%': { backgroundPosition: '-200% 0' }, '100%': { backgroundPosition: '200% 0' } },
+        caret: { '0%,100%': { opacity: '1' }, '50%': { opacity: '0' } },
       },
       animation: {
-        'fade-in': 'fadeIn 0.5s ease-out forwards',
-        'slide-up': 'slideUp 0.5s ease-out forwards',
+        'spin-slow': 'spinSlow 28s linear infinite',
+        shimmer: 'shimmer 1.6s linear infinite',
+        caret: 'caret 0.9s steps(1) infinite',
       },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        slideUp: {
-          '0%': { opacity: '0', transform: 'translateY(10px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
+      transitionTimingFunction: {
+        out: 'cubic-bezier(0.16, 1, 0.3, 1)',
       },
     },
   },

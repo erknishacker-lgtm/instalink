@@ -1,104 +1,124 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap');
-
-:root {
-  --bg-primary: #fffaf5;
-  --bg-card: #ffffff;
-  --text-primary: #2c1f2e;
-  --text-secondary: #6b5b6e;
-  --accent-rose: #e8457a;
-  --accent-warm: #d4634b;
-  --accent-soft: #f8e8f0;
-  --accent-light: #f5e0e8;
-  --accent-delicate: #f8d5e0;
-  --accent-misty: #f8e8f0;
-  --accent-blush: #f5e0e8;
-  --accent-rose-light: #f9a8d4;
-  --accent-rose-soft: #e8b4c8;
-  --accent-rose-medium: #e8457a;
-  --accent-rose-dark: #c21f4d;
-  --accent-rose-pale: #f9d5e0;
-  --accent-rose-gentle: #f0c4d8;
-  --accent-rose-softest: #f8d5e0;
-  --accent-rose-gentler: #f9d5e0;
-  --accent-rose-very-soft: #f8d5e0;
-  --border-subtle: rgba(232, 69, 122, 0.08);
-  --glass: rgba(255, 255, 255, 0.85);
-}
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --bg-primary: #fffaf5;
-  --bg-card: #ffffff;
-  --text-primary: #2c1f2e;
-  --text-secondary: #6b5b6e;
-  --accent-rose: #e8457a;
-  --accent-warm: #d4634b;
-  --accent-soft: #f8e8f0;
-  --accent-light: #f5e0e8;
-  --accent-delicate: #f8d5e0;
-  --accent-misty: #f8e8f0;
-  --accent-blush: #f5e0e8;
-  --accent-rose-light: #f9a8d4;
-  --accent-rose-soft: #e8b4c8;
-  --accent-rose-medium: #e8457a;
-  --accent-rose-dark: #c21f4d;
-  --accent-rose-pale: #f9d5e0;
-  --accent-rose-gentle: #f0c4d8;
-  --accent-rose-softest: #f8d5e0;
-  --accent-rose-gentler: #f9d5e0;
-  --accent-rose-very-soft: #f8d5e0;
-  --border-subtle: rgba(232, 69, 122, 0.08);
-  --glass: rgba(255, 255, 255, 0.85);
+  --paper: #fbeff2;
+  --paper-deep: #f5e4ec;
+  --ink: #3a1f2e;
+  --ink-soft: #6e4a5c;
+  --rose: #b3446c;
+  --hot: #e8457a;
+  --champagne: #ead9c8;
+  --ring: rgba(232, 69, 122, 0.55);
+}
+
+html {
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
 }
 
 html, body {
-  background-color: var(--bg-primary);
   min-height: 100%;
-  color: var(--text-primary);
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Refined scrollbar */
-::-webkit-scrollbar { width: 5px; }
+/* As superfícies que o navegador desenha também são do cartão. */
+::selection { background: rgba(232, 69, 122, 0.22); color: var(--ink); }
+input, textarea { caret-color: var(--hot); accent-color: var(--hot); }
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(232, 69, 122, 0.2); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(232, 69, 122, 0.4); }
+::-webkit-scrollbar-thumb { background: rgba(179, 68, 108, 0.28); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(179, 68, 108, 0.5); }
+* { scrollbar-width: thin; scrollbar-color: rgba(179, 68, 108, 0.28) transparent; }
 
-::selection { background-color: rgba(232, 69, 122, 0.15); color: var(--text-primary); }
-
-/* Glass card utility */
-.glass-card {
-  background: var(--bg-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-subtle);
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+  border-radius: 0.5rem;
 }
 
-/* Subtle grain texture overlay */
-.grain-overlay::before {
+a { text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
+
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Papel do cartão: grão fino + um véu de luz no topo. */
+.paper-grain::before {
   content: '';
   position: fixed;
   inset: 0;
-  opacity: 0.03;
   pointer-events: none;
-  z-index: 9999;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  z-index: 30;
+  opacity: 0.045;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Elegant shimmer animation for loading */
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+/* Fundo padrão quando ela ainda não subiu uma foto: aquarela rosa, sem imagem externa. */
+.paper-default-bg {
+  background:
+    radial-gradient(60% 45% at 20% 12%, rgba(232, 69, 122, 0.16), transparent 70%),
+    radial-gradient(50% 40% at 85% 28%, rgba(217, 139, 166, 0.22), transparent 70%),
+    radial-gradient(70% 55% at 50% 95%, rgba(235, 208, 226, 0.38), transparent 70%),
+    linear-gradient(180deg, #fff7f9 0%, #fbeff2 45%, #f5e4ec 100%);
 }
 
-.loading-shimmer {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+/* Linha pontilhada do cardápio: pontos redondos, alinhados na base do texto. */
+.leader {
+  flex: 1 1 auto;
+  min-width: 1.25rem;
+  height: 1px;
+  margin: 0 0.6rem;
+  align-self: flex-end;
+  margin-bottom: 0.42em;
+  background-image: radial-gradient(circle, currentColor 0.9px, transparent 1.1px);
+  background-size: 6px 2px;
+  background-repeat: repeat-x;
+  background-position: left center;
+  opacity: 0.55;
+}
+
+/* Rótulo de seção do cartão: caixa-alta miúda, espaçada. */
+.card-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--rose);
+}
+
+/* Fio champanhe com um losango no meio, como filete de cartão impresso. */
+.rule-champagne {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--champagne) 20%, var(--champagne) 80%, transparent);
+}
+.rule-champagne::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  background: var(--champagne);
+}
+
+.shimmer-block {
+  background: linear-gradient(90deg, rgba(255,255,255,0.35) 25%, rgba(255,255,255,0.75) 50%, rgba(255,255,255,0.35) 75%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  animation: shimmer 1.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

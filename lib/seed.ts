@@ -1,14 +1,17 @@
 import { SiteData } from './types';
 
 // Dados iniciais gravados no banco na primeira leitura, quando ainda não existe nada.
+// Tudo aqui é placeholder e deve ser trocado pelo painel /admin.
 export function initialData(): SiteData {
   return {
     config: {
       name: 'Seu Nome',
       username: '@seunome',
-      profilePictureUrl: 'https://via.placeholder.com/150',
-      announcementBadge: 'Novidade!',
-      announcementText: 'Bem-vindo ao meu link na bio!',
+      bio: 'Esteticista · Embaixadora Kyeomi',
+      profilePictureUrl: '',
+      backgroundImageUrl: '',
+      announcementBadge: 'Novidade',
+      announcementText: 'Agenda aberta para este mês. Escolha um tratamento abaixo.',
       whatsappPhone: '5511999999999',
     },
     socialLinks: [
@@ -44,15 +47,15 @@ export function initialData(): SiteData {
     services: [
       {
         id: crypto.randomUUID(),
-        name: 'Massagem Relaxante',
-        whatsappMessageTemplate: 'Oi, tudo bem? Gostaria de agendar uma massagem relaxante.',
+        name: 'Limpeza de Pele',
+        whatsappMessageTemplate: 'Oi, tudo bem? Gostaria de agendar uma limpeza de pele.',
         isActive: true,
         order: 1,
       },
       {
         id: crypto.randomUUID(),
-        name: 'Limpeza de Pele',
-        whatsappMessageTemplate: 'Oi, tudo bem? Gostaria de agendar uma limpeza de pele.',
+        name: 'Massagem Relaxante',
+        whatsappMessageTemplate: 'Oi, tudo bem? Gostaria de agendar uma massagem relaxante.',
         isActive: true,
         order: 2,
       },
@@ -68,7 +71,7 @@ export function initialData(): SiteData {
       {
         id: crypto.randomUUID(),
         name: 'Creme Hidratante Facial',
-        imageUrl: 'https://via.placeholder.com/300x300',
+        imageUrl: '',
         affiliateLink: 'https://shopee.com.br/exemplo',
         description: 'Hidratação profunda para todos os tipos de pele',
         isActive: true,
@@ -77,11 +80,22 @@ export function initialData(): SiteData {
       {
         id: crypto.randomUUID(),
         name: 'Kit Skincare Noturno',
-        imageUrl: 'https://via.placeholder.com/300x300',
+        imageUrl: '',
         affiliateLink: 'https://shopee.com.br/exemplo2',
         description: 'Rotina completa de skincare para a noite',
         isActive: true,
         order: 2,
+      },
+    ],
+    partners: [
+      {
+        id: crypto.randomUUID(),
+        name: 'Kyeomi',
+        role: 'Embaixadora oficial',
+        link: 'https://kyeomi.com.br',
+        logoUrl: '/brand/kyeomi-mark.png',
+        isActive: true,
+        order: 1,
       },
     ],
   };

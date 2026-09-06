@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { Redis } from '@upstash/redis';
 import { initialData } from './seed';
-import { SiteData, SiteConfig, SocialLink, UsefulLink, Service, AffiliateProduct } from './types';
+import { SiteData, SiteConfig, SocialLink, UsefulLink, Service, AffiliateProduct, Partner } from './types';
 
 const KEY = 'site:data';
 
@@ -25,11 +25,19 @@ function requireRedisInProduction() {
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DATA_FILE = path.join(DATA_DIR, 'site.json');
 
+// Registros gravados antes de existirem campos novos ganham os defaults aqui.
+function migrate(data: SiteData): SiteData {
+  if (!Array.isArray(data.partners)) data.partners = [];
+  if (data.config.bio === undefined) data.config.bio = '';
+  if (data.config.backgroundImageUrl === undefined) data.config.backgroundImageUrl = '';
+  return data;
+}
+
 async function readData(): Promise<SiteData> {
   requireRedisInProduction();
   if (redis) {
     const data = await redis.get<SiteData>(KEY);
-    if (data) return data;
+    if (data) return migrate(data);
     const seeded = initialData();
     await redis.set(KEY, seeded);
     return seeded;
@@ -40,7 +48,7 @@ async function readData(): Promise<SiteData> {
     await writeData(seeded);
     return seeded;
   }
-  return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8')) as SiteData;
+  return migrate(JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8')) as SiteData);
 }
 
 async function writeData(data: SiteData): Promise<void> {
@@ -202,6 +210,41 @@ export async function deleteProduct(id: string): Promise<boolean> {
   return true;
 }
 
+// Partners
+export async function getPartners(): Promise<Partner[]> {
+  return (await readData()).partners.filter(p => p.isActive).sort((a, b) => a.order - b.order);
+}
+
+export async function getAllPartners(): Promise<Partner[]> {
+  return (await readData()).partners.sort((a, b) => a.order - b.order);
+}
+
+export async function addPartner(partner: Omit<Partner, 'id'>): Promise<Partner> {
+  const data = await readData();
+  const newPartner: Partner = { ...partner, id: crypto.randomUUID() };
+  data.partners.push(newPartner);
+  await writeData(data);
+  return newPartner;
+}
+
+export async function updatePartner(id: string, updates: Partial<Partner>): Promise<Partner | null> {
+  const data = await readData();
+  const idx = data.partners.findIndex(p => p.id === id);
+  if (idx === -1) return null;
+  data.partners[idx] = { ...data.partners[idx], ...updates, id };
+  await writeData(data);
+  return data.partners[idx];
+}
+
+export async function deletePartner(id: string): Promise<boolean> {
+  const data = await readData();
+  const before = data.partners.length;
+  data.partners = data.partners.filter(p => p.id !== id);
+  if (data.partners.length === before) return false;
+  await writeData(data);
+  return true;
+}
+
 // Full data (for public page)
 export async function getPublicData() {
   const data = await readData();
@@ -211,5 +254,8 @@ export async function getPublicData() {
     usefulLinks: data.usefulLinks.sort((a, b) => a.order - b.order),
     services: data.services.filter(s => s.isActive).sort((a, b) => a.order - b.order),
     products: data.products.filter(p => p.isActive).sort((a, b) => a.order - b.order),
+    partners: data.partners.filter(p => p.isActive).sort((a, b) => a.order - b.order),
   };
 }
+
+export type PublicData = Awaited<ReturnType<typeof getPublicData>>;

@@ -17,16 +17,14 @@ Open http://localhost:3000.
 
 ## Configuration
 
-Edit `app/data.js` to set your name, avatar, social profiles and links. Three
-exports drive the page:
+Everything on the page is edited from the admin panel at `/admin`, from a phone:
+your photo, the background image, the announcement, WhatsApp number, treatments
+(each one opens WhatsApp with a ready message), brand partnerships, affiliate
+products (paste the link and the product image is fetched automatically), and
+extra links. The public catalog lives at `/catalogo`.
 
-- `announcementData` — the banner at the top
-- `headerData` — avatar, display name, handle
-- `socialMediaData` — social profile cards
-- `usefulLinksData` — the list of highlighted links
-
-Styling is plain Tailwind utility classes inside the components, so you can
-restyle anything without touching a config file.
+Data is stored in Redis under one key; first run seeds placeholder content from
+`lib/seed.ts`.
 
 ### Environment
 
@@ -36,6 +34,9 @@ The admin panel and image uploads need:
 KV_REST_API_URL=
 KV_REST_API_TOKEN=
 BLOB_READ_WRITE_TOKEN=
+ADMIN_USER=
+ADMIN_PASS=
+JWT_SECRET=
 ```
 
 ## Deploy

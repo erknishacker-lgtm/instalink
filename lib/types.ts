@@ -1,7 +1,11 @@
 export interface SiteConfig {
   name: string;
   username: string;
+  /** Uma linha abaixo do nome: "Esteticista · Embaixadora Kyeomi" */
+  bio?: string;
   profilePictureUrl: string;
+  /** Foto delicada de fundo da página pública. Vazio = textura padrão. */
+  backgroundImageUrl?: string;
   announcementBadge: string;
   announcementText: string;
   whatsappPhone: string;
@@ -45,10 +49,23 @@ export interface AffiliateProduct {
   order: number;
 }
 
+/** Marca da qual ela é embaixadora / parceira. */
+export interface Partner {
+  id: string;
+  name: string;
+  /** Ex.: "Embaixadora oficial" */
+  role: string;
+  link: string;
+  logoUrl?: string;
+  isActive: boolean;
+  order: number;
+}
+
 export interface SiteData {
   config: SiteConfig;
   socialLinks: SocialLink[];
   usefulLinks: UsefulLink[];
   services: Service[];
   products: AffiliateProduct[];
+  partners: Partner[];
 }

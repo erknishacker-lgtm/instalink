@@ -1,146 +1,110 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FaPlus, FaTrash, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
+import { AnimatePresence, motion } from 'framer-motion';
+import toast from 'react-hot-toast';
+import { Plus, Pencil, Trash2, Check, X } from 'lucide-react';
+import { Button, Card, EmptyState, Field, IconButton, Input, PageHeader, Row, Skeleton, Tag, Toggle } from '../components/ui';
+import { MoveButtons, ReorderToggle, useReorder } from '../components/reorder';
+import { iconLabels } from '@/app/icons';
 
-interface UsefulLink {
-  id: string;
-  title: string;
-  link: string;
-  isNew?: boolean;
-  color: string | { start: string; end: string };
-  icon?: string;
-  order: number;
-}
-
-const emptyLink = { title: '', link: '', isNew: false, color: { start: '#F9A8D4', end: '#EC4899' }, order: 0 };
+interface UsefulLink { id: string; title: string; link: string; isNew?: boolean; color: string | { start: string; end: string }; icon?: string; order: number; }
+const empty = { title: '', link: '', isNew: false, icon: '', order: 0 };
 
 export default function AdminLinksPage() {
-  const [links, setLinks] = useState<UsefulLink[]>([]);
+  const [links, setLinks] = useState<UsefulLink[] | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
-  const [form, setForm] = useState(emptyLink);
+  const [form, setForm] = useState(empty);
   const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  async function load() {
-    const res = await fetch('/api/useful-links');
-    setLinks(await res.json());
-  }
-
+  async function load() { setLinks(await fetch('/api/useful-links').then(r => r.json())); }
   useEffect(() => { load(); }, []);
+  const reorder = useReorder('/api/useful-links', links, setLinks, load);
 
-  function resetForm() {
-    setForm(emptyLink);
-    setEditing(null);
-    setShowForm(false);
-  }
+  function reset() { setForm(empty); setEditing(null); setShowForm(false); }
 
-  async function handleSave(e: React.FormEvent) {
+  async function save(e: React.FormEvent) {
     e.preventDefault();
-    const method = editing ? 'PUT' : 'POST';
-    const body = editing ? { ...form, id: editing } : form;
-    await fetch('/api/useful-links', {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    resetForm();
-    load();
+    setSaving(true);
+    const body = { ...form, color: { start: '#F0CBD8', end: '#B3446C' }, order: form.order || (links?.length || 0) + 1, ...(editing ? { id: editing } : {}) };
+    const res = await fetch('/api/useful-links', { method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    setSaving(false);
+    if (!res.ok) return toast.error('Não consegui salvar. Tenta de novo.');
+    toast.success(editing ? 'Link atualizado' : 'Link adicionado');
+    reset(); load();
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Remover este link?')) return;
-    await fetch(`/api/useful-links?id=${id}`, { method: 'DELETE' });
-    load();
+  async function remove(l: UsefulLink) {
+    if (!confirm(`Remover "${l.title}" da página?`)) return;
+    await fetch(`/api/useful-links?id=${l.id}`, { method: 'DELETE' });
+    toast.success('Link removido'); load();
   }
 
-  function startEdit(link: UsefulLink) {
-    setForm({
-      title: link.title,
-      link: link.link,
-      isNew: link.isNew || false,
-      color: typeof link.color === 'string' ? { start: link.color, end: link.color } : link.color,
-      order: link.order,
-    });
-    setEditing(link.id);
-    setShowForm(true);
+  function edit(l: UsefulLink) {
+    setForm({ title: l.title, link: l.link, isNew: !!l.isNew, icon: l.icon || '', order: l.order });
+    setEditing(l.id); setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-[#4A1942]">Gerenciar Links</h1>
-        {!showForm && (
-          <button onClick={() => { resetForm(); setShowForm(true); }} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#F9A8D4] to-[#EC4899] text-white rounded-lg hover:opacity-90 transition-opacity">
-            <FaPlus className="text-sm" /> Novo Link
-          </button>
+      <PageHeader title="Links" subtitle="Aparecem como linhas do cartão, abaixo dos achadinhos."
+        action={!showForm && (
+          <div className="flex gap-2">
+            {!!links?.length && <ReorderToggle active={reorder.active} onClick={() => reorder.setActive(!reorder.active)} />}
+            {!reorder.active && <Button icon={<Plus className="h-4 w-4" />} onClick={() => { reset(); setShowForm(true); }}>Novo</Button>}
+          </div>
+        )} />
+
+      <AnimatePresence initial={false}>
+        {showForm && (
+          <motion.form key="form" onSubmit={save} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }} className="overflow-hidden">
+            <Card className="mb-6 flex flex-col gap-4">
+              <p className="text-[15px] font-semibold text-ink">{editing ? 'Editar link' : 'Novo link'}</p>
+              <Field label="Título" htmlFor="title"><Input id="title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Meu portfólio" required autoFocus /></Field>
+              <Field label="Endereço" htmlFor="url"><Input id="url" value={form.link} onChange={e => setForm({ ...form, link: e.target.value })} placeholder="https://..." inputMode="url" required /></Field>
+              <div className="grid grid-cols-1 gap-4">
+                <Field label="Ícone" htmlFor="icon" hint="opcional">
+                  <select id="icon" value={form.icon} onChange={e => setForm({ ...form, icon: e.target.value })} className="h-12 w-full rounded-2xl border border-champagne bg-white/80 px-4 text-[16px] text-ink focus:border-hot focus:outline-none focus:ring-4 focus:ring-hot/15">
+                    <option value="">nenhum</option>
+                    {Object.entries(iconLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                  </select>
+                </Field>
+              </div>
+              <Toggle checked={form.isNew} onChange={v => setForm({ ...form, isNew: v })} label='Mostrar etiqueta "novo"' />
+              <div className="flex gap-2 pt-1">
+                <Button type="submit" loading={saving} icon={<Check className="h-4 w-4" />}>Salvar</Button>
+                <Button type="button" variant="ghost" icon={<X className="h-4 w-4" />} onClick={reset}>Cancelar</Button>
+              </div>
+            </Card>
+          </motion.form>
         )}
-      </div>
+      </AnimatePresence>
 
-      {showForm && (
-        <form onSubmit={handleSave} className="bg-white p-6 rounded-xl border border-pink-100 shadow-sm mb-6 space-y-4">
-          <h2 className="text-lg font-semibold text-[#4A1942]">{editing ? 'Editar Link' : 'Novo Link'}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-[#4A1942] mb-1">Título</label>
-              <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none bg-pink-50/50" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#4A1942] mb-1">URL</label>
-              <input value={form.link} onChange={e => setForm({ ...form, link: e.target.value })} className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none bg-pink-50/50" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#4A1942] mb-1">Cor Início</label>
-              <div className="flex gap-2 items-center">
-                <input type="color" value={typeof form.color === 'string' ? form.color : form.color.start} onChange={e => setForm({ ...form, color: { start: e.target.value, end: typeof form.color === 'string' ? e.target.value : form.color.end } })} className="h-10 w-14 rounded cursor-pointer" />
-                <span className="text-xs text-pink-400">{typeof form.color === 'string' ? form.color : form.color.start}</span>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#4A1942] mb-1">Cor Fim</label>
-              <div className="flex gap-2 items-center">
-                <input type="color" value={typeof form.color === 'string' ? form.color : form.color.end} onChange={e => setForm({ ...form, color: { start: typeof form.color === 'string' ? form.color : form.color.start, end: e.target.value } })} className="h-10 w-14 rounded cursor-pointer" />
-                <span className="text-xs text-pink-400">{typeof form.color === 'string' ? form.color : form.color.end}</span>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#4A1942] mb-1">Ordem</label>
-              <input type="number" value={form.order} onChange={e => setForm({ ...form, order: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none bg-pink-50/50" />
-            </div>
-            <div className="flex items-end">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.isNew || false} onChange={e => setForm({ ...form, isNew: e.target.checked })} className="rounded border-pink-300 text-pink-500 focus:ring-pink-400" />
-                <span className="text-sm text-[#4A1942]">Marcar como "Novo"</span>
-              </label>
-            </div>
-          </div>
-          <div className="flex gap-2 pt-2">
-            <button type="submit" className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#F9A8D4] to-[#EC4899] text-white rounded-lg hover:opacity-90"><FaSave className="text-sm" /> Salvar</button>
-            <button type="button" onClick={resetForm} className="flex items-center gap-2 px-4 py-2 border border-pink-200 text-[#4A1942] rounded-lg hover:bg-pink-50"><FaTimes className="text-sm" /> Cancelar</button>
-          </div>
-        </form>
+      {!links ? <div className="flex flex-col gap-3"><Skeleton className="h-[72px]" /><Skeleton className="h-[72px]" /></div>
+      : links.length === 0 ? <EmptyState title="Nenhum link ainda" body="Portfólio, curso, formulário… qualquer endereço que você queira mostrar." action={<Button icon={<Plus className="h-4 w-4" />} onClick={() => setShowForm(true)}>Adicionar o primeiro</Button>} />
+      : (
+        <ul className="flex flex-col gap-3">
+          <AnimatePresence initial={false}>
+            {links.map((l, i) => (
+              <Row key={l.id}>
+                <span className="tabular flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-pale text-[13px] font-bold text-rose">{i + 1}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-2"><span className="truncate text-[15.5px] font-semibold text-ink">{l.title}</span>{l.isNew && <Tag>novo</Tag>}</span>
+                  <span className="block truncate text-[13px] text-ink-mute">{l.link}</span>
+                </span>
+                {reorder.active ? <MoveButtons index={i} total={links.length} onMove={reorder.move} /> : (
+                  <>
+                    <IconButton label="Editar" onClick={() => edit(l)}><Pencil className="h-[18px] w-[18px]" /></IconButton>
+                    <IconButton label="Remover" onClick={() => remove(l)} className="hover:text-rose"><Trash2 className="h-[18px] w-[18px]" /></IconButton>
+                  </>
+                )}
+              </Row>
+            ))}
+          </AnimatePresence>
+        </ul>
       )}
-
-      <div className="space-y-3">
-        {links.map(link => (
-          <div key={link.id} className="bg-white p-4 rounded-xl border border-pink-100 shadow-sm flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ background: `linear-gradient(to right, ${typeof link.color === 'string' ? link.color : link.color.start}, ${typeof link.color === 'string' ? link.color : link.color.end})` }}>
-                {link.order}
-              </div>
-              <div>
-                <p className="font-medium text-[#4A1942]">{link.title}</p>
-                <p className="text-xs text-pink-400 truncate max-w-xs">{link.link}</p>
-              </div>
-              {link.isNew && <span className="px-2 py-0.5 bg-pink-100 text-pink-600 text-xs rounded-full font-medium">Novo</span>}
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => startEdit(link)} className="p-2 text-pink-400 hover:bg-pink-50 rounded-lg"><FaEdit /></button>
-              <button onClick={() => handleDelete(link.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg"><FaTrash /></button>
-            </div>
-          </div>
-        ))}
-        {links.length === 0 && <p className="text-center text-pink-300 py-8">Nenhum link cadastrado ainda.</p>}
-      </div>
     </div>
   );
 }

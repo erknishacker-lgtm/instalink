@@ -1,90 +1,72 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import { Check } from 'lucide-react';
 import ImageUpload from '../components/ImageUpload';
-import { FaSave } from 'react-icons/fa';
-
-interface SiteConfig {
-  name: string;
-  username: string;
-  profilePictureUrl: string;
-  announcementBadge: string;
-  announcementText: string;
-  whatsappPhone: string;
-}
+import { Button, Card, Field, Input, PageHeader, Skeleton, Textarea } from '../components/ui';
+import type { SiteConfig } from '@/lib/types';
 
 export default function AdminSettingsPage() {
   const [config, setConfig] = useState<SiteConfig | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetch('/api/site').then(r => r.json()).then(setConfig);
-  }, []);
+  useEffect(() => { fetch('/api/site').then(r => r.json()).then(setConfig); }, []);
 
-  async function handleSave(e: React.FormEvent) {
+  async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!config) return;
-    await fetch('/api/site', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(config),
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setSaving(true);
+    const res = await fetch('/api/site', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config) });
+    setSaving(false);
+    if (!res.ok) return toast.error('Não consegui salvar. Tenta de novo.');
+    toast.success('Página atualizada');
   }
 
-  if (!config) return <div className="text-pink-300">Carregando...</div>;
+  if (!config) return <div className="flex flex-col gap-4"><Skeleton className="h-10 w-40" /><Skeleton className="h-64" /><Skeleton className="h-48" /></div>;
+  const set = (patch: Partial<SiteConfig>) => setConfig({ ...config, ...patch });
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-[#4A1942] mb-6">Configurações do Site</h1>
+    <form onSubmit={save}>
+      <PageHeader title="Ajustes" subtitle="Sua foto, o fundo da página, o aviso e o WhatsApp." />
 
-      <form onSubmit={handleSave} className="bg-white p-6 rounded-xl border border-pink-100 shadow-sm space-y-4 max-w-2xl">
-        <h2 className="text-lg font-semibold text-[#4A1942]">Perfil</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-[#4A1942] mb-1">Nome</label>
-            <input value={config.name} onChange={e => setConfig({ ...config, name: e.target.value })} className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none bg-pink-50/50" required />
+      <div className="flex flex-col gap-5">
+        <Card className="flex flex-col gap-5">
+          <p className="card-label">Você</p>
+          <ImageUpload label="Sua foto" value={config.profilePictureUrl} onChange={url => set({ profilePictureUrl: url })} shape="round" hint="Aparece grande, num oval, no topo da página. Vertical fica melhor." />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Nome" htmlFor="name"><Input id="name" value={config.name} onChange={e => set({ name: e.target.value })} required /></Field>
+            <Field label="@ do Instagram" htmlFor="user"><Input id="user" value={config.username} onChange={e => set({ username: e.target.value })} required /></Field>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-[#4A1942] mb-1">Username</label>
-            <input value={config.username} onChange={e => setConfig({ ...config, username: e.target.value })} className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none bg-pink-50/50" required />
+          <Field label="Uma linha sobre você" htmlFor="bio" hint="Ex.: Esteticista · Embaixadora Kyeomi">
+            <Input id="bio" value={config.bio || ''} onChange={e => set({ bio: e.target.value })} maxLength={80} />
+          </Field>
+        </Card>
+
+        <Card className="flex flex-col gap-5">
+          <p className="card-label">Fundo da página</p>
+          <ImageUpload label="Foto de fundo" value={config.backgroundImageUrl || ''} onChange={url => set({ backgroundImageUrl: url })} shape="wide" hint="Algo delicado: flores, seda, luz suave. Ela fica atrás de um véu rosa, então não precisa ser clara. Sem foto, uso a aquarela padrão." />
+        </Card>
+
+        <Card className="flex flex-col gap-5">
+          <p className="card-label">Aviso no topo</p>
+          <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
+            <Field label="Etiqueta" htmlFor="badge"><Input id="badge" value={config.announcementBadge} onChange={e => set({ announcementBadge: e.target.value })} placeholder="Novidade" /></Field>
+            <Field label="Texto" htmlFor="ann" hint="Deixe vazio pra esconder o aviso."><Textarea id="ann" rows={2} value={config.announcementText} onChange={e => set({ announcementText: e.target.value })} /></Field>
           </div>
-          <div className="md:col-span-2">
-            <ImageUpload label="Foto de Perfil" value={config.profilePictureUrl} onChange={url => setConfig({ ...config, profilePictureUrl: url })} />
-          </div>
+        </Card>
+
+        <Card className="flex flex-col gap-5">
+          <p className="card-label">WhatsApp</p>
+          <Field label="Número com DDD" htmlFor="wa" hint="Só números: 55 + DDD + número. Ex.: 5511999999999">
+            <Input id="wa" value={config.whatsappPhone} onChange={e => set({ whatsappPhone: e.target.value.replace(/\D/g, '') })} inputMode="numeric" required />
+          </Field>
+        </Card>
+
+        <div className="sticky bottom-24 z-30 flex justify-end md:static">
+          <Button type="submit" loading={saving} icon={<Check className="h-4 w-4" />} className="shadow-lift">Salvar alterações</Button>
         </div>
-
-        <hr className="border-pink-100 my-4" />
-
-        <h2 className="text-lg font-semibold text-[#4A1942]">Anúncio</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-[#4A1942] mb-1">Badge</label>
-            <input value={config.announcementBadge} onChange={e => setConfig({ ...config, announcementBadge: e.target.value })} className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none bg-pink-50/50" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-[#4A1942] mb-1">Texto</label>
-            <input value={config.announcementText} onChange={e => setConfig({ ...config, announcementText: e.target.value })} className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none bg-pink-50/50" />
-          </div>
-        </div>
-
-        <hr className="border-pink-100 my-4" />
-
-        <h2 className="text-lg font-semibold text-[#4A1942]">WhatsApp</h2>
-        <div>
-          <label className="block text-sm font-medium text-[#4A1942] mb-1">Número (com código do país)</label>
-          <input value={config.whatsappPhone} onChange={e => setConfig({ ...config, whatsappPhone: e.target.value })} className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none bg-pink-50/50" placeholder="5511999999999" required />
-          <p className="text-xs text-pink-400 mt-1">Formato: 55 + DDD + número, sem espaços ou traços</p>
-        </div>
-
-        <div className="flex items-center gap-3 pt-4">
-          <button type="submit" className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#F9A8D4] to-[#EC4899] text-white font-semibold rounded-lg hover:opacity-90 transition-opacity">
-            <FaSave className="text-sm" /> Salvar Configurações
-          </button>
-          {saved && <span className="text-green-500 text-sm font-medium">✓ Salvo com sucesso!</span>}
-        </div>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }

@@ -1,20 +1,33 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-jwt-key-change-this-in-production-2026');
 const COOKIE_NAME = 'admin_token';
+
+// O fallback fixo que existia aqui vazava no repositório: quem lesse o código
+// conseguiria assinar um cookie de admin válido em produção. Em dev ele ainda
+// serve, em produção falta de segredo é erro — e erro aqui tranca a porta.
+function secret(): Uint8Array {
+  const value = process.env.JWT_SECRET;
+  if (!value) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET não configurado.');
+    }
+    return new TextEncoder().encode('segredo-so-de-desenvolvimento');
+  }
+  return new TextEncoder().encode(value);
+}
 
 export async function signToken(payload: { user: string }): Promise<string> {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('24h')
-    .sign(JWT_SECRET);
+    .sign(secret());
 }
 
 export async function verifyToken(token: string): Promise<{ user: string } | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, secret());
     return payload as { user: string };
   } catch {
     return null;
