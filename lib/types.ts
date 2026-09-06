@@ -19,6 +19,7 @@ export interface SocialLink {
   username?: string;
   color: string | { start: string; end: string };
   order: number;
+  isActive: boolean;
 }
 
 export interface UsefulLink {

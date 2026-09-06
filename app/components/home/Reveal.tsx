@@ -56,9 +56,8 @@ export default function Reveal({
     <motion.div
       className={className}
       variants={gestures[gesture]}
-      initial="hidden"
-      whileInView="shown"
-      viewport={{ once: true, margin: '0px 0px -8% 0px' }}
+      initial={false}
+      animate="shown"
       transition={{ delay }}
     >
       {children}

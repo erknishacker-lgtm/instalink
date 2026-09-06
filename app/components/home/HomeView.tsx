@@ -14,6 +14,7 @@ import Reveal from './Reveal';
 
 export default function HomeView({ data }: { data: PublicData }) {
   const { config } = data;
+  const hasPartnersOrProducts = data.partners.length > 0 || data.products.length > 0;
   return (
     <main className="paper-grain relative min-h-screen">
       <Backdrop imageUrl={config.backgroundImageUrl} />
@@ -27,14 +28,24 @@ export default function HomeView({ data }: { data: PublicData }) {
             <Reveal><Announcement badge={config.announcementBadge} text={config.announcementText} /></Reveal>
           )}
 
-          <Reveal><ServiceMenu services={data.services} whatsappPhone={config.whatsappPhone} /></Reveal>
+          {data.services.length > 0 && (
+            <Reveal><ServiceMenu services={data.services} whatsappPhone={config.whatsappPhone} /></Reveal>
+          )}
 
-          <div className="flex flex-col gap-4">
-            <Reveal gesture="turn"><PartnerSeal partners={data.partners} /></Reveal>
-            <Reveal gesture="settle"><CatalogRibbon count={data.products.length} /></Reveal>
-          </div>
+          {hasPartnersOrProducts && (
+            <div className="flex flex-col gap-4">
+              {data.partners.length > 0 && (
+                <Reveal gesture="turn"><PartnerSeal partners={data.partners} /></Reveal>
+              )}
+              {data.products.length > 0 && (
+                <Reveal gesture="settle"><CatalogRibbon count={data.products.length} /></Reveal>
+              )}
+            </div>
+          )}
 
-          <Reveal gesture="drift"><AchadinhosPreview products={data.products} /></Reveal>
+          {data.products.length > 0 && (
+            <Reveal gesture="drift"><AchadinhosPreview products={data.products} /></Reveal>
+          )}
 
           <LinkLines links={data.usefulLinks} />
 

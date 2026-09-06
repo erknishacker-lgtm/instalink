@@ -2,22 +2,16 @@
 
 import { motion } from 'framer-motion';
 import { iconMap } from '@/app/icons';
-
-interface SocialLink {
-  id: string;
-  title: string;
-  link: string;
-  icon: string;
-  username?: string;
-}
+import type { SocialLink } from '@/lib/types';
 
 export default function SocialRow({ links }: { links: SocialLink[] }) {
-  if (links.length === 0) return null;
+  const activeLinks = links.filter((link) => link.isActive && link.link);
+  if (activeLinks.length === 0) return null;
   return (
     <section aria-labelledby="redes" className="w-full">
       <h2 id="redes" className="card-label px-1">Me acompanhe</h2>
       <ul className="mt-3 flex flex-wrap justify-center gap-x-6 gap-y-5">
-        {links.map((l) => {
+        {activeLinks.map((l) => {
           const Icon = iconMap[l.icon] || iconMap.FaLink;
           const handle = l.username ? (l.username.startsWith('@') ? l.username : `@${l.username}`) : l.title;
           return (

@@ -1,4 +1,5 @@
 import { SiteData } from './types';
+import { createDefaultSocialLinks } from './socials';
 
 // Dados iniciais gravados no banco na primeira leitura, quando ainda não existe nada.
 // Tudo aqui é placeholder e deve ser trocado pelo painel /admin.
@@ -14,26 +15,7 @@ export function initialData(): SiteData {
       announcementText: 'Agenda aberta para este mês. Escolha um tratamento abaixo.',
       whatsappPhone: '5511999999999',
     },
-    socialLinks: [
-      {
-        id: crypto.randomUUID(),
-        title: 'Instagram',
-        link: 'https://instagram.com/',
-        icon: 'FaInstagram',
-        username: '@seunome',
-        color: { start: '#F9A8D4', end: '#EC4899' },
-        order: 1,
-      },
-      {
-        id: crypto.randomUUID(),
-        title: 'TikTok',
-        link: 'https://tiktok.com/@',
-        icon: 'FaTiktok',
-        username: '@seunome',
-        color: { start: '#F9A8D4', end: '#DB2777' },
-        order: 2,
-      },
-    ],
+    socialLinks: createDefaultSocialLinks(),
     usefulLinks: [
       {
         id: crypto.randomUUID(),

@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { Redis } from '@upstash/redis';
 import { initialData } from './seed';
+import { createDefaultSocialLinks } from './socials';
 import { SiteData, SiteConfig, SocialLink, UsefulLink, Service, AffiliateProduct, Partner } from './types';
 
 const KEY = 'site:data';
@@ -28,8 +29,26 @@ const DATA_FILE = path.join(DATA_DIR, 'site.json');
 // Registros gravados antes de existirem campos novos ganham os defaults aqui.
 function migrate(data: SiteData): SiteData {
   if (!Array.isArray(data.partners)) data.partners = [];
+  if (!Array.isArray(data.socialLinks)) data.socialLinks = [];
   if (data.config.bio === undefined) data.config.bio = '';
   if (data.config.backgroundImageUrl === undefined) data.config.backgroundImageUrl = '';
+
+  data.socialLinks = data.socialLinks.map((link) => {
+    const isOldPlaceholder = link.username === '@seunome';
+    return {
+      ...link,
+      link: isOldPlaceholder ? '' : link.link,
+      username: isOldPlaceholder ? '' : link.username,
+      // Links antigos nunca foram escolhidos no painel. Começam ocultos.
+      isActive: typeof link.isActive === 'boolean' ? link.isActive : false,
+    };
+  });
+
+  for (const defaultLink of createDefaultSocialLinks()) {
+    if (!data.socialLinks.some((link) => link.icon === defaultLink.icon)) {
+      data.socialLinks.push(defaultLink);
+    }
+  }
   return data;
 }
 
@@ -98,6 +117,23 @@ export async function updateSocialLink(id: string, updates: Partial<SocialLink>)
   data.socialLinks[idx] = { ...data.socialLinks[idx], ...updates, id };
   await writeData(data);
   return data.socialLinks[idx];
+}
+
+export async function updateSocialLinks(
+  updates: Array<{ id: string; updates: Partial<SocialLink> }>,
+): Promise<SocialLink[]> {
+  const data = await readData();
+  const updated: SocialLink[] = [];
+
+  for (const item of updates) {
+    const idx = data.socialLinks.findIndex((link) => link.id === item.id);
+    if (idx === -1) throw new Error('Link não encontrado.');
+    data.socialLinks[idx] = { ...data.socialLinks[idx], ...item.updates, id: item.id };
+    updated.push(data.socialLinks[idx]);
+  }
+
+  await writeData(data);
+  return updated;
 }
 
 export async function deleteSocialLink(id: string): Promise<boolean> {
@@ -250,7 +286,7 @@ export async function getPublicData() {
   const data = await readData();
   return {
     config: data.config,
-    socialLinks: data.socialLinks.sort((a, b) => a.order - b.order),
+    socialLinks: data.socialLinks.filter(l => l.isActive && l.link).sort((a, b) => a.order - b.order),
     usefulLinks: data.usefulLinks.sort((a, b) => a.order - b.order),
     services: data.services.filter(s => s.isActive).sort((a, b) => a.order - b.order),
     products: data.products.filter(p => p.isActive).sort((a, b) => a.order - b.order),
